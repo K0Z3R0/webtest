@@ -1,5 +1,5 @@
-from flask import Flask, send_file, Response
-import io
+from flask import Flask, Response, request
+
 
 app = Flask(__name__)
 
@@ -10,14 +10,20 @@ CONTENT_TYPE = "image/png"
 @app.route("/<path:subpath>")
 def serve_image(subpath=None):
     try:
-        
+        requested_mimetype = request.args.get("mimetype")
         with open(IMAGE_PATH, "rb") as f:
             image_data = f.read()
         
+        content_type = (
+        requested_mimetype
+        if requested_mimetype
+        else CONTENT_TYPE
+    )
         
         return Response(
             image_data,
-            mimetype=CONTENT_TYPE 
+            
+            mimetype=content_type 
         )
     except FileNotFoundError:
         return "Image not found", 404
