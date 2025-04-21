@@ -1,4 +1,4 @@
-from flask import Flask, Response, request
+from flask import Flask, Response, request, send_file
 
 
 app = Flask(__name__)
@@ -19,12 +19,28 @@ def serve_image(subpath=None):
         if requested_mimetype
         else CONTENT_TYPE
     )
+        custom_headers = {}
+        if "headers" in request.args:
+            try:
+                for header_part in request.args["headers"].split(","):
+                    if ":" in header_part:
+                        header, value = header_part.split(":", 1)
+                        header = header.strip()
+                        custom_headers[header] = value.strip()
+            except ValueError:
+                pass 
+
         
-        return Response(
-            image_data,
-            
-            mimetype=content_type 
+        response = send_file(
+            IMAGE_PATH,
+            mimetype=content_type,
+            as_attachment=(content_type == "application/octet-stream"),
         )
+
+        for header, value in custom_headers.items():
+            response.headers[header] = value
+    
+        return response
     except FileNotFoundError:
         return "Image not found", 404
 
