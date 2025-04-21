@@ -23,7 +23,7 @@ def serve_image(subpath=None):
         custom_headers = {}
         if "headers" in request.args:
             try:
-                for header_part in request.args["headers"].split(","):
+                for header_part in request.args["headers"].split(",,"):
                     if ":" in header_part:
                         header, value = header_part.split(":", 1)
                         header = header.strip()
