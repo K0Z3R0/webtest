@@ -1,10 +1,11 @@
-from flask import Flask, Response, request, send_file
+from flask import Flask, Response, request, send_file, redirect
 
 
 app = Flask(__name__)
 
 IMAGE_PATH = "example.png"
 CONTENT_TYPE = "image/png"
+
 
 @app.route("/")
 @app.route("/<path:subpath>")
@@ -39,7 +40,9 @@ def serve_image(subpath=None):
 
         for header, value in custom_headers.items():
             response.headers[header] = value
-    
+        if 'location' in request.args:
+            return redirect(request.args.get('location'))
+        
         return response
     except FileNotFoundError:
         return "Image not found", 404
