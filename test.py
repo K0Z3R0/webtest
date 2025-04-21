@@ -1,4 +1,20 @@
 from flask import Flask, Response, request, send_file, redirect
+import pprint
+
+class LoggingMiddleware(object):
+    def __init__(self, app):
+        self._app = app
+
+    def __call__(self, env, resp):
+        errorlog = env['wsgi.errors']
+        pprint.pprint(('REQUEST', env), stream=errorlog)
+
+        def log_response(status, headers, *args):
+            pprint.pprint(('RESPONSE', status, headers), stream=errorlog)
+            return resp(status, headers, *args)
+
+        return self._app(env, log_response)
+
 
 
 app = Flask(__name__)
@@ -14,7 +30,7 @@ def serve_image(subpath=None):
         requested_mimetype = request.args.get("mimetype")
         with open(IMAGE_PATH, "rb") as f:
             image_data = f.read()
-        
+        print(request.data.decode('utf-8'))
         content_type = (
         requested_mimetype
         if requested_mimetype
@@ -48,4 +64,5 @@ def serve_image(subpath=None):
         return "Image not found", 404
 
 if __name__ == "__main__":
+    app.wsgi_app = LoggingMiddleware(app.wsgi_app)
     app.run(host="0.0.0.0", port=5000, debug=True)
